@@ -5,6 +5,7 @@ import com.bootcamp.smarthome.device.Device;
 import com.bootcamp.smarthome.device.SmartLight;
 import com.bootcamp.smarthome.device.SmartLock;
 import com.bootcamp.smarthome.device.SmartThermostat;
+import com.bootcamp.smarthome.exception.DeviceNotFoundException;
 import com.bootcamp.smarthome.exception.HomeAutomationException;
 
 /**
@@ -83,6 +84,8 @@ public class Main {
         try {
             controller.sendCommand("SENSOR_99 TURN_ON");
         } catch (HomeAutomationException e) {
+            System.out.println("Error: " + e.getMessage());
+        } catch (DeviceNotFoundException e) {
             System.out.println("Error: " + e.getMessage());
         }
 
