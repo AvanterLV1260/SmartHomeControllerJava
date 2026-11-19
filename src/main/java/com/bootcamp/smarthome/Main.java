@@ -5,7 +5,6 @@ import com.bootcamp.smarthome.device.SmartLight;
 import com.bootcamp.smarthome.device.SmartLock;
 import com.bootcamp.smarthome.device.SmartThermostat;
 import com.bootcamp.smarthome.exception.DeviceNotFoundException;
-import com.bootcamp.smarthome.exception.DeviceOfflineException;
 import com.bootcamp.smarthome.exception.HomeAutomationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,21 +21,13 @@ public class Main {
 
     public static void main(String[] args) {
         HomeController controller = setupDevices();
-        try {
-            normalCommands(controller);
-            setBrightness(controller);
-            invalidTemperature(controller);
-            offlineDevice(controller);
-            unlockWithCorrectPin(controller);
-            unlockWithNullPin(controller);
-            findNonExistentDevice(controller);
-        } catch (DeviceNotFoundException e) {
-            logger.error("Device not found", e);
-        } catch (DeviceOfflineException e) {
-            logger.error("Device is offline", e);
-        } catch (HomeAutomationException e) {
-            logger.error("Could not fulfill user command", e);
-        }
+        normalCommands(controller);
+        setBrightness(controller);
+        invalidTemperature(controller);
+        offlineDevice(controller);
+        unlockWithCorrectPin(controller);
+        unlockWithNullPin(controller);
+        findNonExistentDevice(controller);
         logger.info("=== All scenarios complete ===");
         controller.printAllDevices();
     }
@@ -57,44 +48,74 @@ public class Main {
         return controller;
     }
 
-    private static void normalCommands(HomeController controller) throws HomeAutomationException {
+    private static void normalCommands(HomeController controller) {
         logger.info("=== Scenario 1: Normal device commands ===");
-        controller.sendCommand("LIGHT_01 TURN_ON");
-        controller.sendCommand("LIGHT_02 TURN_ON");
-        controller.sendCommand("THERMO_01 SET_TEMP 22.5");
+        try {
+            controller.sendCommand("LIGHT_01 TURN_ON");
+            controller.sendCommand("LIGHT_02 TURN_ON");
+            controller.sendCommand("THERMO_01 SET_TEMP 22.5");
+        } catch (HomeAutomationException e) {
+            logger.error("Could not run normal device commands", e);
+        }
     }
 
-    private static void setBrightness(HomeController controller) throws HomeAutomationException {
+    private static void setBrightness(HomeController controller) {
         logger.info("=== Scenario 2: Set brightness ===");
-        controller.sendCommand("LIGHT_01 SET_BRIGHTNESS 80");
+        try {
+            controller.sendCommand("LIGHT_01 SET_BRIGHTNESS 80");
+        } catch (HomeAutomationException e) {
+            logger.error("Could not set brightness", e);
+        }
     }
 
-    private static void invalidTemperature(HomeController controller) throws HomeAutomationException {
+    private static void invalidTemperature(HomeController controller) {
         logger.info("=== Scenario 3: Invalid temperature ===");
-        // Calls setTemperature() directly to isolate temperature validation
-        SmartThermostat thermostat = (SmartThermostat) controller.findDevice("THERMO_01");
-        thermostat.setTemperature(99.0);
+        try {
+            // Calls setTemperature() directly to isolate temperature validation
+            SmartThermostat thermostat = (SmartThermostat) controller.findDevice("THERMO_01");
+            thermostat.setTemperature(99.0);
+        } catch (HomeAutomationException e) {
+            logger.error("Could not set temperature", e);
+        }
     }
 
-    private static void offlineDevice(HomeController controller) throws HomeAutomationException {
+    private static void offlineDevice(HomeController controller) {
         logger.info("=== Scenario 4: Offline device ===");
-        // LIGHT_03 is offline, so the command should be skipped with a warning
-        controller.sendCommand("LIGHT_03 TURN_ON");
+        try {
+            // LIGHT_03 is offline, so the command should be skipped with a warning
+            controller.sendCommand("LIGHT_03 TURN_ON");
+        } catch (HomeAutomationException e) {
+            logger.error("Could not send command to offline device", e);
+        }
     }
 
-    private static void unlockWithCorrectPin(HomeController controller) throws HomeAutomationException {
+    private static void unlockWithCorrectPin(HomeController controller) {
         logger.info("=== Scenario 5: Unlock with correct PIN ===");
-        SmartLock frontDoor = (SmartLock) controller.findDevice("LOCK_01");
-        frontDoor.validatePin("4321");
+        try {
+            SmartLock frontDoor = (SmartLock) controller.findDevice("LOCK_01");
+            frontDoor.validatePin("4321");
+        } catch (HomeAutomationException e) {
+            logger.error("Could not unlock with correct PIN", e);
+        }
     }
 
-    private static void unlockWithNullPin(HomeController controller) throws HomeAutomationException {
+    private static void unlockWithNullPin(HomeController controller) {
         logger.info("=== Scenario 6: Unlock with null PIN ===");
-        controller.sendCommand("LOCK_02 UNLOCK");
+        try {
+            controller.sendCommand("LOCK_02 UNLOCK");
+        } catch (HomeAutomationException e) {
+            logger.error("Could not unlock without PIN", e);
+        }
     }
 
-    private static void findNonExistentDevice(HomeController controller) throws HomeAutomationException {
+    private static void findNonExistentDevice(HomeController controller) {
         logger.info("=== Scenario 7: Find non-existent device ===");
-        controller.sendCommand("SENSOR_99 TURN_ON");
+        try {
+            controller.sendCommand("SENSOR_99 TURN_ON");
+        } catch (DeviceNotFoundException e) {
+            logger.error("Device not found", e);
+        } catch (HomeAutomationException e) {
+            logger.error("Could not send command to device", e);
+        }
     }
 }
