@@ -1,7 +1,9 @@
 package com.bootcamp.smarthome.controller;
 
 import com.bootcamp.smarthome.device.Device;
-
+import com.bootcamp.smarthome.exception.HomeAutomationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * Central hub that manages all registered smart devices.
  *
@@ -9,7 +11,7 @@ import com.bootcamp.smarthome.device.Device;
  * The controller routes commands to devices by their ID.
  */
 public class HomeController {
-
+    private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
     public static final int MAX_DEVICES = 8;
 
     private final Device[] devices = new Device[MAX_DEVICES];
@@ -47,7 +49,7 @@ public class HomeController {
      * Returns {@code null} when no matching device is found.
      */
     public Device findDevice(String deviceId) {
-        for (int i = 0; i <= deviceCount; i++) {
+        for (int i = 0; i < deviceCount; i++) {
             if (devices[i] != null && devices[i].getDeviceId().equals(deviceId)) {
                 return devices[i];
             }
@@ -68,23 +70,33 @@ public class HomeController {
      *
      * @param fullCommand the full command string
      */
-    public void sendCommand(String fullCommand) {
+    public void sendCommand(String fullCommand) throws HomeAutomationException {
         String deviceId = CommandParser.extractDeviceId(fullCommand);
-        String command  = CommandParser.extractCommand(fullCommand);
+        String command = CommandParser.extractCommand(fullCommand);
 
-        Device device = findDevice(deviceId);
+        try {
+            logger.debug("Command recieved: deviceId={}, command={}", deviceId, fullCommand);
+            Device device = findDevice(deviceId);
 
-        if (device == null) {
-            System.out.println("Device not found: " + deviceId);
-            return;
+            if (device == null) {
+                System.out.println("Device not found: " + deviceId);
+                return;
+            }
+
+            if (!device.isOnline()) {
+               logger.warn ("Device not online, command skipped: deviceId={}", deviceId);
+                return;
+            }
+
+            device.executeCommand(command);
+            logger.info("Command finished successfully: deviceId={}, command={}", deviceId, command);
+        } catch (HomeAutomationException e) {
+            logger.error("Command failed: deviceId={}, command={}", deviceId, fullCommand, e);
+            throw new HomeAutomationException(
+                    "Command '" + fullCommand + "' failed for device '" + deviceId + "'", e);
+        } finally {
+            System.out.println("Command processing ended for device " + deviceId);
         }
-
-        if (!device.isOnline()) {
-            System.out.println("WARNING: Device '" + deviceId + "' is offline — command skipped.");
-            return;
-        }
-
-        device.executeCommand(command);
     }
 
     // -------------------------------------------------------------------------
