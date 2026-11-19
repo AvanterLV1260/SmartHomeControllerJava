@@ -1,8 +1,9 @@
 package com.bootcamp.smarthome.device;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import com.bootcamp.smarthome.exception.HomeAutomationException;
 import com.bootcamp.smarthome.exception.InvalidCommandException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A PIN-protected smart door lock.
@@ -11,7 +12,9 @@ import com.bootcamp.smarthome.exception.InvalidCommandException;
  * Every failed unlock attempt is treated as a security event.
  */
 public class SmartLock extends Device {
+
     private static final Logger logger = LoggerFactory.getLogger(SmartLock.class);
+
     private boolean isLocked;
     private final String storedPin;
 
@@ -30,16 +33,15 @@ public class SmartLock extends Device {
      */
     public void validatePin(String pin) throws InvalidCommandException {
         if (pin == null || !pin.equals(storedPin)) {
-            logger.error("SECURITY ALERT: failed unlock attempt for {}", getName());
             throw new InvalidCommandException("Invalid PIN for " + getName());
         }
         isLocked = false;
-        System.out.println(getName() + " unlocked successfully.");
+        logger.info("{} unlocked successfully", getName());
     }
 
     public void lock() {
         isLocked = true;
-        System.out.println(getName() + " locked.");
+        logger.info("{} locked", getName());
     }
 
     @Override
@@ -55,7 +57,7 @@ public class SmartLock extends Device {
         } else if (command.equals("TURN_OFF")) {
             turnOff();
         } else {
-            System.out.println("Unknown command for SmartLock '" + getName() + "': " + command);
+            logger.warn("Unknown command for SmartLock '{}': {}", getName(), command);
         }
     }
 

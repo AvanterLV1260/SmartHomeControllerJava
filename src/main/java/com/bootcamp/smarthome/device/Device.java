@@ -1,5 +1,9 @@
 package com.bootcamp.smarthome.device;
+
 import com.bootcamp.smarthome.exception.HomeAutomationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Abstract base class representing a smart home device.
  *
@@ -10,7 +14,7 @@ import com.bootcamp.smarthome.exception.HomeAutomationException;
  * Prior knowledge required: abstract classes, encapsulation, inheritance.
  */
 public abstract class Device {
-
+    private static final Logger logger = LoggerFactory.getLogger(Device.class);
     private final String deviceId;
     private final String name;
     private boolean isOnline;
@@ -45,12 +49,12 @@ public abstract class Device {
 
     public void turnOn() {
         isOn = true;
-        System.out.println(name + " turned ON.");
+        logger.info("{} turned ON", name);
     }
 
     public void turnOff() {
         isOn = false;
-        System.out.println(name + " turned OFF.");
+        logger.info("{} turned OFF", name);
     }
 
     // -------------------------------------------------------------------------
